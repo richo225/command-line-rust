@@ -24,5 +24,5 @@ fn main() {
     let ending: &str = if omit_new_line { "" } else { "\n" };
 
     let text: Vec<String> = matches.values_of_lossy("text").unwrap();
-    println!("{}{}", text.join(", "), ending);
+    println!("{}{}", text.join(" "), ending);
 }

@@ -46,10 +46,10 @@ pub fn get_args() -> MyResult<Config> {
     })
 }
 
-pub fn run(config: Config) -> MyResult<()> {
+pub fn run(config: &Config) -> MyResult<()> {
     for file in &config.files {
         let content = fs::read_to_string(file);
-        println!("{:#?}", content.unwrap())
+        print!("{}", content.unwrap())
     }
 
     Ok(())

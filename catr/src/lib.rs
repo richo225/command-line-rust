@@ -1,7 +1,7 @@
 use clap::{App, Arg};
 use std::error::Error;
 use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::{self, BufRead, BufReader};
 
 pub struct Config {
     number_all_lines: bool,
@@ -21,8 +21,7 @@ pub fn get_args() -> MyResult<Config> {
                 .value_name("FILE PATH")
                 .help("Provide a file to read")
                 .multiple(true)
-                .required(true)
-                .min_values(1),
+                .default_value("-"),
         )
         .arg(
             Arg::with_name("number_all_lines")
@@ -48,11 +47,11 @@ pub fn get_args() -> MyResult<Config> {
 }
 
 pub fn run(config: &Config) -> MyResult<()> {
-    for file in &config.files {
-        match File::open(&file) {
-            Err(err) => eprintln!("Failed to open {}: {}", file, err),
+    for filename in &config.files {
+        match open(&filename) {
+            Err(err) => eprintln!("Failed to open {}: {}", filename, err),
             Ok(file) => {
-                for line_result in BufReader::new(file).lines() {
+                for line_result in file.lines() {
                     let line = line_result?;
                     println!("{}", line);
                 }
@@ -61,4 +60,11 @@ pub fn run(config: &Config) -> MyResult<()> {
     }
 
     Ok(())
+}
+
+fn open(filename: &str) -> MyResult<Box<dyn BufRead>> {
+    match filename {
+        "-" => Ok(Box::new(BufReader::new(io::stdin()))),
+        _ => Ok(Box::new(BufReader::new(File::open(filename)?))),
+    }
 }

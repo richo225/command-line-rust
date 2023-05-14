@@ -8,10 +8,14 @@ OUT_DIR="tests/expected"
 [[ ! -d "$OUT_DIR" ]] && mkdir -p "$OUT_DIR"
 
 EMPTY="$ROOT/empty.txt"
+INACCESSIBLE="$ROOT/inaccessible.txt"
 FOX="$ROOT/fox.txt"
 SPIDERS="$ROOT/spiders.txt"
 BUSTLE="$ROOT/the-bustle.txt"
 ALL="$EMPTY $FOX $SPIDERS $BUSTLE"
+
+touch $INACCESSIBLE
+chmod 000 $INACCESSIBLE
 
 for FILE in $ALL; do
     BASENAME=$(basename "$FILE")

@@ -1,19 +1,31 @@
-use std::fs;
+use std::fs::{self};
 
 use assert_cmd::Command;
 use predicates::prelude::predicate;
 
 type TestResult = Result<(), Box<dyn std::error::Error>>;
 
+const INACCESSIBLE: &str = "tests/inputs/inaccessible.txt";
+const NONEXISTENT: &str = "tests/inputs/thisfiledoesnotexist.txt";
 const EMPTY: &str = "tests/inputs/empty.txt";
 const FOX: &str = "tests/inputs/fox.txt";
 const SPIDERS: &str = "tests/inputs/spiders.txt";
 const BUSTLE: &str = "tests/inputs/the-bustle.txt";
 
-fn run(args: &[&str], expected_file: &str) -> TestResult {
+fn run_stdout(args: &[&str], expected_file: &str) -> TestResult {
     let expected = fs::read_to_string(expected_file)?;
     let mut cmd = Command::cargo_bin("catr")?;
     cmd.args(args).assert().success().stdout(expected);
+
+    Ok(())
+}
+
+fn run_stderr(args: &[&str], expected_predicate: &str) -> TestResult {
+    let mut cmd = Command::cargo_bin("catr")?;
+    cmd.args(args)
+        .assert()
+        .success()
+        .stderr(predicate::str::contains(expected_predicate));
 
     Ok(())
 }
@@ -29,48 +41,66 @@ fn dies_with_no_args() -> TestResult {
 }
 
 #[test]
+fn errors_with_nonexistent_file() -> TestResult {
+    run_stderr(&[NONEXISTENT], "No such file or directory (os error 2)")
+}
+
+#[test]
+fn errors_with_inaccessible_file() -> TestResult {
+    // let mut permissions = File::open(INACCESSIBLE)
+    //     .unwrap()
+    //     .metadata()
+    //     .unwrap()
+    //     .permissions();
+
+    // permissions.set_mode(000);
+
+    run_stderr(&[INACCESSIBLE], "Permission denied (os error 13)")
+}
+
+#[test]
 fn empty() -> TestResult {
-    run(&[EMPTY], "tests/expected/empty.txt.out")
+    run_stdout(&[EMPTY], "tests/expected/empty.txt.out")
 }
 
 #[test]
 fn empty_b() -> TestResult {
-    run(&["-b", EMPTY], "tests/expected/empty.b.txt.out")
+    run_stdout(&["-b", EMPTY], "tests/expected/empty.b.txt.out")
 }
 
 #[test]
 fn empty_n() -> TestResult {
-    run(&["-n", EMPTY], "tests/expected/empty.n.txt.out")
+    run_stdout(&["-n", EMPTY], "tests/expected/empty.n.txt.out")
 }
 
 #[test]
 fn fox() -> TestResult {
-    run(&[FOX], "tests/expected/fox.txt.out")
+    run_stdout(&[FOX], "tests/expected/fox.txt.out")
 }
 
 #[test]
 fn fox_n() -> TestResult {
-    run(&["-n", FOX], "tests/expected/fox.txt.n.out")
+    run_stdout(&["-n", FOX], "tests/expected/fox.txt.n.out")
 }
 
 #[test]
 fn fox_b() -> TestResult {
-    run(&["-b", FOX], "tests/expected/fox.txt.b.out")
+    run_stdout(&["-b", FOX], "tests/expected/fox.txt.b.out")
 }
 
 #[test]
 fn spiders() -> TestResult {
-    run(&[SPIDERS], "tests/expected/spiders.txt.out")
+    run_stdout(&[SPIDERS], "tests/expected/spiders.txt.out")
 }
 
 #[test]
 fn spiders_n() -> TestResult {
-    run(&["--number", SPIDERS], "tests/expected/spiders.txt.n.out")
+    run_stdout(&["--number", SPIDERS], "tests/expected/spiders.txt.n.out")
 }
 
 #[test]
 fn spiders_b() -> TestResult {
-    run(
+    run_stdout(
         &["--number-nonblank", SPIDERS],
         "tests/expected/spiders.txt.b.out",
     )
@@ -78,30 +108,30 @@ fn spiders_b() -> TestResult {
 
 #[test]
 fn bustle() -> TestResult {
-    run(&[BUSTLE], "tests/expected/the-bustle.txt.out")
+    run_stdout(&[BUSTLE], "tests/expected/the-bustle.txt.out")
 }
 
 #[test]
 fn bustle_n() -> TestResult {
-    run(&["-n", BUSTLE], "tests/expected/the-bustle.txt.n.out")
+    run_stdout(&["-n", BUSTLE], "tests/expected/the-bustle.txt.n.out")
 }
 
 #[test]
 fn bustle_b() -> TestResult {
-    run(&["-b", BUSTLE], "tests/expected/the-bustle.txt.b.out")
+    run_stdout(&["-b", BUSTLE], "tests/expected/the-bustle.txt.b.out")
 }
 
 #[test]
 fn all() -> TestResult {
-    run(&[FOX, SPIDERS, BUSTLE], "tests/expected/all.out")
+    run_stdout(&[FOX, SPIDERS, BUSTLE], "tests/expected/all.out")
 }
 
 #[test]
 fn all_n() -> TestResult {
-    run(&[FOX, SPIDERS, BUSTLE, "-n"], "tests/expected/all.n.out")
+    run_stdout(&[FOX, SPIDERS, BUSTLE, "-n"], "tests/expected/all.n.out")
 }
 
 #[test]
 fn all_b() -> TestResult {
-    run(&[FOX, SPIDERS, BUSTLE, "-b"], "tests/expected/all.b.out")
+    run_stdout(&[FOX, SPIDERS, BUSTLE, "-b"], "tests/expected/all.b.out")
 }

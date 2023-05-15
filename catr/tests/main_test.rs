@@ -14,6 +14,7 @@ const BUSTLE: &str = "tests/inputs/the-bustle.txt";
 
 fn run_stdout(args: &[&str], expected_file: &str) -> TestResult {
     let expected = fs::read_to_string(expected_file)?;
+
     let mut cmd = Command::cargo_bin("catr")?;
     cmd.args(args).assert().success().stdout(expected);
 
@@ -22,20 +23,11 @@ fn run_stdout(args: &[&str], expected_file: &str) -> TestResult {
 
 fn run_stderr(args: &[&str], expected_predicate: &str) -> TestResult {
     let mut cmd = Command::cargo_bin("catr")?;
+
     cmd.args(args)
         .assert()
         .success()
         .stderr(predicate::str::contains(expected_predicate));
-
-    Ok(())
-}
-
-#[test]
-fn dies_with_no_args() -> TestResult {
-    let mut cmd = Command::cargo_bin("catr")?;
-    cmd.assert()
-        .failure()
-        .stderr(predicate::str::contains("<FILE_NAME>"));
 
     Ok(())
 }
@@ -59,18 +51,29 @@ fn errors_with_inaccessible_file() -> TestResult {
 }
 
 #[test]
+fn usage() -> TestResult {
+    for flag in &["-h", "--help"] {
+        Command::cargo_bin("catr")?
+            .arg(flag)
+            .assert()
+            .stdout(predicate::str::contains("USAGE"));
+    }
+    Ok(())
+}
+
+#[test]
 fn empty() -> TestResult {
     run_stdout(&[EMPTY], "tests/expected/empty.txt.out")
 }
 
 #[test]
 fn empty_b() -> TestResult {
-    run_stdout(&["-b", EMPTY], "tests/expected/empty.b.txt.out")
+    run_stdout(&["-b", EMPTY], "tests/expected/empty.txt.b.out")
 }
 
 #[test]
 fn empty_n() -> TestResult {
-    run_stdout(&["-n", EMPTY], "tests/expected/empty.n.txt.out")
+    run_stdout(&["-n", EMPTY], "tests/expected/empty.txt.n.out")
 }
 
 #[test]

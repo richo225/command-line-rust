@@ -49,7 +49,7 @@ pub fn get_args() -> MyResult<Config> {
 
 pub fn run(config: &Config) -> MyResult<()> {
     for filename in &config.files {
-        match open(&filename) {
+        match open(filename) {
             Err(err) => eprintln!("Failed to open {}: {}", filename, err),
             Ok(file) => {
                 let mut last_number = 0;

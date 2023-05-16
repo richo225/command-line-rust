@@ -21,7 +21,7 @@ fn run_stdout(args: &[&str], expected_file: &str) -> TestResult {
     cmd.args(args)
         .assert()
         .success()
-        .stdout(predicate::eq(&expected.as_bytes() as &[u8]));
+        .stdout(predicate::eq(expected.as_bytes() as &[u8]));
 
     Ok(())
 }

@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use clap::{App, Arg};
+use clap::{App, Arg, ArgMatches};
 
 #[derive(Debug)]
 pub struct Config {
@@ -43,9 +43,37 @@ pub fn get_args() -> MyResult<Config> {
         )
         .get_matches();
 
+    return_config(&matches)
+}
+
+fn return_config(matches: &ArgMatches) -> MyResult<Config> {
+    let files: Vec<String> = matches.values_of_lossy("files").unwrap();
+
+    let lines: usize = matches
+        .value_of("number_of_lines")
+        // unpacks &str from Option<&str> and passes it to parse_string_to_int()
+        .map(parse_string_to_int)
+        // turns Option<Result<usize, Box<_>>> into Result<Option<usize>, Box<_>>
+        .transpose()
+        .map_err(|e| format!("illegal line count -- {}", e))?
+        .unwrap();
+
+    let bytes: Option<usize> = matches
+        .value_of("number_of_bytes")
+        .map(parse_string_to_int)
+        .transpose()
+        .map_err(|e| format!("illegal byte count -- {}", e))?;
+
     Ok(Config {
-        files: matches.values_of_lossy("files").unwrap(),
-        lines: matches.value_of_lossy("lines").unwrap(),
-        bytes: matches.value_of_lossy("bytes").unwrap(),
+        files,
+        lines,
+        bytes,
     })
+}
+
+pub fn parse_string_to_int(string: &str) -> MyResult<usize> {
+    match string.parse::<usize>() {
+        Ok(n) if n > 0 => Ok(n),
+        _ => Err(string.into()),
+    }
 }

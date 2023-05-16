@@ -45,3 +45,21 @@ fn usage() -> TestResult {
     }
     Ok(())
 }
+
+#[test]
+fn test_parse_string_to_int() {
+    let actual = headr::parse_string_to_int("3");
+    let expected = 3;
+    assert!(actual.is_ok());
+    assert_eq!(actual.unwrap(), expected);
+
+    let actual = headr::parse_string_to_int("hello");
+    let expected = "hello".to_string();
+    assert!(actual.is_err());
+    assert_eq!(actual.unwrap_err().to_string(), expected);
+
+    let actual = headr::parse_string_to_int("0");
+    let expected = "0".to_string();
+    assert!(actual.is_err());
+    assert_eq!(actual.unwrap_err().to_string(), expected);
+}

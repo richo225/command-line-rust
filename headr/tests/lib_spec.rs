@@ -1,6 +1,6 @@
 use assert_cmd::Command;
 use predicates::prelude::*;
-use std::fs;
+use std::{fs::File, io::Read};
 
 type TestResult = Result<(), Box<dyn std::error::Error>>;
 
@@ -12,16 +12,22 @@ const THREE: &str = "tests/inputs/three.txt";
 const TEN: &str = "tests/inputs/ten.txt";
 
 fn run_stdout(args: &[&str], expected_file: &str) -> TestResult {
-    let expected = fs::read_to_string(expected_file)?;
+    let mut file = File::open(expected_file)?;
+    let mut buffer = Vec::new();
+    file.read_to_end(&mut buffer)?;
+    let expected = String::from_utf8_lossy(&buffer);
 
-    let mut cmd = Command::cargo_bin("catr")?;
-    cmd.args(args).assert().success().stdout(expected);
+    let mut cmd = Command::cargo_bin("headr")?;
+    cmd.args(args)
+        .assert()
+        .success()
+        .stdout(predicate::eq(&expected.as_bytes() as &[u8]));
 
     Ok(())
 }
 
 fn run_stderr(args: &[&str], expected_predicate: &str) -> TestResult {
-    let mut cmd = Command::cargo_bin("catr")?;
+    let mut cmd = Command::cargo_bin("headr")?;
 
     cmd.args(args)
         .assert()

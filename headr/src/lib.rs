@@ -1,7 +1,7 @@
 use std::{
     error::Error,
     fs::File,
-    io::{self, BufRead, BufReader},
+    io::{self, BufRead, BufReader, Read},
 };
 
 use clap::{App, Arg, ArgMatches};
@@ -23,22 +23,26 @@ pub fn get_args() -> MyResult<Config> {
         .arg(
             Arg::with_name("files")
                 .value_name("FILE PATH")
-                .help("Provide file to read")
+                .help("Provide file(s) to read")
+                .multiple(true)
                 .default_value("-"),
         )
         .arg(
             Arg::with_name("number_of_lines")
+                .value_name("LINES")
                 .long("lines")
                 .short("n")
                 .help("Number of lines to print")
-                .default_value("10")
-                .conflicts_with("number_nonblank_lines"),
+                .default_value("10"),
         )
         .arg(
             Arg::with_name("number_of_bytes")
+                .value_name("BYTES")
                 .long("bytes")
                 .short("c")
-                .help("Number of bytes to print"),
+                .help("Number of bytes to print")
+                .takes_value(true)
+                .conflicts_with("number_of_lines"),
         )
         .get_matches();
 
@@ -52,6 +56,10 @@ pub fn run(config: &Config) -> MyResult<()> {
             Ok(mut file) => {
                 if let Some(number_bytes) = config.bytes {
                     // print lines for number_bytes
+                    let mut handle = file.take(number_bytes as u64);
+                    let mut buffer = vec![0; number_bytes];
+                    let bytes_read = handle.read(&mut buffer)?;
+                    print!("{}", String::from_utf8_lossy(&buffer[..bytes_read]));
                 } else {
                     // print lines for number_lines
                     let mut line = String::new();

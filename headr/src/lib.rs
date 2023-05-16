@@ -51,7 +51,7 @@ pub fn get_args() -> MyResult<Config> {
 
 pub fn run(config: &Config) -> MyResult<()> {
     for (file_number, filename) in config.files.iter().enumerate() {
-        match open(&filename) {
+        match open(filename) {
             Err(err) => eprintln!("Failed to open {}: {}", filename, err),
             Ok(mut file) => {
                 if config.files.len() > 1 {

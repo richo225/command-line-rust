@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-INPUTS="./tests/inputs"
-OUT_DIR="./tests/expected"
+INPUTS="tests/inputs"
+OUT_DIR="tests/expected"
 
 [[ ! -d "$OUT_DIR" ]] && mkdir -p "$OUT_DIR"
 
